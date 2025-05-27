@@ -30,8 +30,12 @@ def generate_chart(df: pd.DataFrame, symbol: str, timeframe: str, smc_data: dict
     filepath = os.path.join(os.getcwd(), filename)
 
     mc = mpf.make_marketcolors(up='g', down='r', inherit=True)
-    # s = mpf.make_mpf_style(marketcolors=mc, gridcolor='gray', figcolor='whitesmoke', y_on_right=True)
-    binance_dark = {
+
+    #light mode
+    # s_mode = mpf.make_mpf_style(marketcolors=mc, gridcolor='gray', figcolor='whitesmoke', y_on_right=True)
+    
+    #dark mode
+    s_mode = {
         "base_mpl_style": "dark_background",
         "marketcolors": {
             "candle": {"up": "#3dc985", "down": "#ef4f60"},  
@@ -124,10 +128,8 @@ def generate_chart(df: pd.DataFrame, symbol: str, timeframe: str, smc_data: dict
                     # Plot point atau tanda di level Swing Low
                     addplots.append(mpf.make_addplot(pd.Series(row['Level'], index=df.index), scatter=True, marker='^', color='orange', markersize=100, panel=0))
 
-
     try:
-        mpf.plot(df, type='candle', style=binance_dark, title=f"{symbol} {timeframe}", 
-                 update_width_config=dict(candle_linewidth=0.5, candle_width=0.5),
+        mpf.plot(df, type='candle', style=s_mode, title=f"{symbol} {timeframe}", 
                  ylabel='Harga', savefig=filepath, figscale=1.5, addplot=addplots)
         return filepath
     except Exception as e:
