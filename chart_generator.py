@@ -1,7 +1,7 @@
 import pandas as pd
 import mplfinance as mpf
 import os
-import numpy as np # Tambahkan ini
+import numpy as np
 
 # Untuk visualisasi SMC yang lebih kompleks, Anda mungkin perlu membuat `addplot` khusus
 # atau memproses data SMC untuk menghasilkan garis atau area yang akan diplot.
@@ -30,7 +30,35 @@ def generate_chart(df: pd.DataFrame, symbol: str, timeframe: str, smc_data: dict
     filepath = os.path.join(os.getcwd(), filename)
 
     mc = mpf.make_marketcolors(up='g', down='r', inherit=True)
-    s = mpf.make_mpf_style(marketcolors=mc, gridcolor='gray', figcolor='whitesmoke', y_on_right=True)
+    # s = mpf.make_mpf_style(marketcolors=mc, gridcolor='gray', figcolor='whitesmoke', y_on_right=True)
+    binance_dark = {
+        "base_mpl_style": "dark_background",
+        "marketcolors": {
+            "candle": {"up": "#3dc985", "down": "#ef4f60"},  
+            "edge": {"up": "#3dc985", "down": "#ef4f60"},  
+            "wick": {"up": "#3dc985", "down": "#ef4f60"},  
+            "ohlc": {"up": "green", "down": "red"},
+            "volume": {"up": "#247252", "down": "#82333f"},  
+            "vcedge": {"up": "green", "down": "red"},  
+            "vcdopcod": False,
+            "alpha": 1,
+        },
+        "mavcolors": ("#ad7739", "#a63ab2", "#62b8ba"),
+        "facecolor": "#1b1f24",
+        "gridcolor": "#2c2e31",
+        "gridstyle": "--",
+        "y_on_right": True,
+        "rc": {
+            "axes.grid": True,
+            "axes.grid.axis": "y",
+            "axes.edgecolor": "#474d56",
+            "axes.titlecolor": "red",
+            "figure.facecolor": "#161a1e",
+            "figure.titlesize": "x-large",
+            "figure.titleweight": "semibold",
+        },
+        "base_mpf_style": "binance-dark",
+    }
 
     addplots = []
 
@@ -98,33 +126,11 @@ def generate_chart(df: pd.DataFrame, symbol: str, timeframe: str, smc_data: dict
 
 
     try:
-        mpf.plot(df, type='candle', style=s, title=f"{symbol} {timeframe} Candlestick Chart",
+        mpf.plot(df, type='candle', style=binance_dark, title=f"{symbol} {timeframe}", 
+                 update_width_config=dict(candle_linewidth=0.5, candle_width=0.5),
                  ylabel='Harga', savefig=filepath, figscale=1.5, addplot=addplots)
         return filepath
     except Exception as e:
         print(f"Error generating chart for {symbol} {timeframe}: {e}")
         return ""
-
-
-# def generate_chart(df: pd.DataFrame, symbol: str, timeframe: str) -> str:
-#     """
-#     Menghasilkan grafik candlestick dan menyimpannya sebagai gambar.
-#     Menggunakan mplfinance untuk visualisasi dasar.
-#     """
-#     if df.empty:
-#         return ""
-
-#     filename = f"chart_{symbol}_{timeframe}.png"
-#     filepath = os.path.join(os.getcwd(), filename) # Simpan di direktori kerja
-
-#     # Sesuaikan gaya atau tambahkan indikator jika diperlukan
-#     mc = mpf.make_marketcolors(up='g', down='r', inherit=True)
-#     s = mpf.make_mpf_style(marketcolors=mc, gridcolor='gray', figcolor='whitesmoke', y_on_right=True)
-
-#     try:
-#         mpf.plot(df, type='candle', style=s, title=f"{symbol} {timeframe} Candlestick Chart",
-#                  ylabel='Harga', savefig=filepath, figscale=1.5) # figscale untuk ukuran gambar
-#         return filepath
-#     except Exception as e:
-#         print(f"Error generating chart for {symbol} {timeframe}: {e}")
-#         return ""
+    

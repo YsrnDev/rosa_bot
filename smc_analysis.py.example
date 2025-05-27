@@ -29,24 +29,17 @@ def inputvalidator(input_="ohlc"):
                     raise LookupError(
                         'Must have a dataframe column named "{0}"'.format(inputs[l])
                     )
-
             return func(*args, **kwargs)
-
         return wrap
-
     return dfcheck
-
 
 def apply(decorator):
     def decorate(cls):
         for attr in cls.__dict__:
             if callable(getattr(cls, attr)):
                 setattr(cls, attr, decorator(getattr(cls, attr)))
-
         return cls
-
     return decorate
-
 
 @apply(inputvalidator(input_="ohlc"))
 class smc:
@@ -948,9 +941,8 @@ class smc:
         deepest_retracement = pd.Series(deepest_retracement, name="DeepestRetracement%")
 
         return pd.concat([direction, current_retracement, deepest_retracement], axis=1)
-    
 
- # JANGAN DI HAPUS  
+
 def analyze_smc(df: pd.DataFrame, symbol: str, timeframe: str) -> str:
     """
     Melakukan analisis Smart Money Concept (SMC) pada data harga
@@ -1040,7 +1032,7 @@ def analyze_smc(df: pd.DataFrame, symbol: str, timeframe: str) -> str:
             "liquidity": liquidity_data
         }
 
-    # Tangani kasus error agar tetap mengembalikan tuples
+    # Tangani kasus error agar tetap mengembalikan tuple
     except Exception as e:
         analysis_results.append(f"Terjadi kesalahan saat melakukan analisis SMC: {e}")
         print(f"Error in analyze_smc: {e}")
