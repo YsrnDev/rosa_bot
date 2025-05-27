@@ -2,8 +2,16 @@ import os
 import google.generativeai as genai
 import asyncio
 from data_retrieval import get_current_crypto_price, get_current_stock_forex_price
+from dotenv import load_dotenv
 
-# Configure Gemini API
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv('GOOGLE_API_KEY')
+if GEMINI_API_KEY is None:
+    print("ERROR: GOOGLE_API_KEY not found in environment variables!")
+    import sys
+    sys.exit(1)
+
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # ==========================================================
