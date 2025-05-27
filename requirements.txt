@@ -3,6 +3,7 @@
 # venv\Scripts\activate
 # pip install -r requirements.txt
 
+ccxt==4.4.85
 discord.py==2.5.2
 google-generativeai==0.8.5
 mplfinance==0.12.10b0
@@ -11,4 +12,5 @@ openai==1.82.0
 pandas==2.2.3
 python-binance==1.0.29
 python-dotenv==1.1.0
+requests==2.32.3
 yfinance==0.2.61
