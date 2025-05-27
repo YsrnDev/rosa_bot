@@ -1,0 +1,72 @@
+import os
+from binance.client import Client
+import pandas as pd
+import asyncio
+import yfinance as yf
+
+# Inisialisasi klien Binance
+binance_client = Client(os.getenv("BINANCE_API_KEY"), os.getenv("BINANCE_API_SECRET"))
+
+async def get_binance_klines(symbol: str, interval: str, limit: int = 500) -> pd.DataFrame:
+    """
+    Mengambil data kline (candlestick) dari Binance.
+    """
+    try:
+        # Binance API secara sinkron, jadi jalankan di executor
+        klines = await asyncio.to_thread(
+            binance_client.get_historical_klines, symbol, interval, "100 days ago UTC" # Ambil 100 hari terakhir
+        )
+        df = pd.DataFrame(klines, columns=[
+            'open_time', 'open', 'high', 'low', 'close', 'volume',
+            'close_time', 'quote_asset_volume', 'number_of_trades',
+            'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'
+        ])
+        df['open_time'] = pd.to_datetime(df['open_time'], unit='ms')
+        df['close_time'] = pd.to_datetime(df['close_time'], unit='ms')
+        df[['open', 'high', 'low', 'close', 'volume']] = df[['open', 'high', 'low', 'close', 'volume']].astype(float)
+        df = df.set_index('open_time')
+        return df[['open', 'high', 'low', 'close', 'volume']]
+    except Exception as e:
+        print(f"Error fetching Binance klines for {symbol} {interval}: {e}")
+        return pd.DataFrame()
+
+async def get_yfinance_data(symbol: str, interval: str) -> pd.DataFrame:
+    """
+    Mengambil data historis dari Yahoo Finance menggunakan yfinance.
+    Simbol untuk yfinance mungkin berbeda (misal, EURUSD=X untuk forex, GC=F untuk emas).
+    Interval yfinance juga punya formatnya sendiri (misal, '1m', '5m', '1h', '1d').
+    """
+    try:
+        # Mapping interval dari Discord ke yfinance
+        interval_map = {
+            "1m": "1m", "5m": "5m", "15m": "15m", "30m": "30m",
+            "1h": "60m", "4h": "4h", "1d": "1d", "1w": "1wk", "1M": "1mo"
+        }
+        yf_interval = interval_map.get(interval, "1d") # Default ke 1d jika tidak ada mapping
+
+        # Tentukan periode berdasarkan interval untuk menghindari terlalu banyak data
+        if yf_interval == "1m":
+            period = "7d" # 7 hari terakhir untuk 1 menit
+        elif yf_interval in ["5m", "15m", "30m"]:
+            period = "60d" # 60 hari terakhir
+        elif yf_interval in ["60m", "4h", "1d"]:
+            period = "1y" # 1 tahun terakhir
+        else:
+            period = "5y" # 5 tahun terakhir
+
+        # yfinance secara sinkron, jadi jalankan di executor
+        ticker = yf.Ticker(symbol)
+        df = await asyncio.to_thread(ticker.history, period=period, interval=yf_interval)
+
+        if df.empty:
+            return pd.DataFrame()
+
+        # Normalisasi kolom agar sesuai dengan format Binance (open, high, low, close, volume)
+        df = df[['Open', 'High', 'Low', 'Close', 'Volume']]
+        df.columns = [col.lower() for col in df.columns]
+        df.index.name = 'open_time' # Set nama indeks untuk konsistensi
+
+        return df
+    except Exception as e:
+        print(f"Error fetching yfinance data for {symbol} {interval}: {e}")
+        return pd.DataFrame()
